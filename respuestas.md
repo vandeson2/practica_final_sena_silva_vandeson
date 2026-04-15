@@ -6,38 +6,87 @@
 
 ## Ejercicio 1 — Análisis Estadístico Descriptivo
 ---
-Añade aqui tu descripción y analisis:
+He realizado un análisis estadísitico descriptivo sobre un dataset de Airbnb de Madrid. El objetivo ha sido comprender la estructura de los datos, identificar posibles problemas de calidad y analizar las relaciones entre variables.
+
+En el análisis de variables categóriocas con alta cardinalidad, se han representado únicamente las 10 categoriás más frecuente. En los gráficos de frecuencias, el resto de categorias se ha agrupado en 'otros'para mejorar la legitibilidad.
+En los boxplots, se han mostrado solo las 10 categorías principales para evitar mezclar distribución heterogéneas.
 
 ---
 
 **Pregunta 1.1** — ¿De qué fuente proviene el dataset y cuál es la variable objetivo (target)? ¿Por qué tiene sentido hacer regresión sobre ella?
 
-> _Escribe aquí tu respuesta_
+He utilizado el dataset de Madrid Airbnb obtenido de Kaggle.
+
+La variable objetivo seleccionada es **price**, que representa el precio por noche del alojamiento.
+
+Tiene sentido aplicar la regresión sobre esta variable porque es una variable numeríca continua, está influenciada por múltiples factores como (ubicación, tipo de habitación, disponibilidad, etc) y es una variable de interés real en el contexto del negocio, ya que permite estimar precios de nuevos alojamientos.
 
 **Pregunta 1.2** — ¿Qué distribución tienen las principales variables numéricas y has encontrado outliers? Indica en qué variables y qué has decidido hacer con ellos.
 
-> _Escribe aquí tu respuesta_
+Distribución:
+- **price**: muestra una distribución asimétric positiva, con una concentración de valores bajos y una cola larga hacia valores altos, lo que indica la presencia de alojamientos de precio elevado.
+- **number_of_reviews** y **reviews_per_month**: presentan asimetría, con muchos valores cercanos a cero.
+- **availability_365**: presenta una distribución más uniforme.
+
+Se ha detectado outliers en la variable **price**, característicos en este tipo de dataset por los alojamientos de lujo.
+Para su tratamiento se utilizó el método del rango intercuartílico (IQR):
+- Q1= 35.0000
+- Q3= 100.0000
+- IQR= 65.0000
+Se eliminaron un **9.7% de los dato**s, lo que representa un impacto moderado.
+He elejido el método IQR frente al Z-score porque es más robusto ante distribuciones asimétricas como la observada en 'price' y no asume normalidad en los datos.
+La eliminación de estos valores permite evitar que los modelos de regresión se vean distorcionados por valores extremos.
 
 **Pregunta 1.3** — ¿Qué tres variables numéricas tienen mayor correlación (en valor absoluto) con la variable objetivo? Indica los coeficientes.
 
-> _Escribe aquí tu respuesta_
+Las tres variables numéricas con mayor correlación (en valor absoluto) con la variable objetiva 'precio' son:
+- calculated_host_listings_count: r = 0.2052
+- latitude: r = 0.0907
+- availability_365: r = 0.0554
+
+Por lo general las correlaciones observadas son **débiles**, lo que indica que el precio depende de múltiples factores y no de una sola variable. 
+No detectaron problemas graves de multicolinealidad, por lo que las variables pueden utilizarse conjuntamente en modelos de regresión.
 
 **Pregunta 1.4** — ¿Hay valores nulos en el dataset? ¿Qué porcentaje representan y cómo los has tratado?
 
-> _Escribe aquí tu respuesta_
+Si, el dataset presenta valores nulos, principalmente en las variables:
 
+- **last_review**: con un 28.73% se ha elimida la varible debido al alto porcentaje de nulos.
+- **reviews_per_month**: con un porcentaje aproximadamente de 28,73%, se ha reemplazado por 0, ya que la ausencia de reviews puede interpretarse como falta de actividad
+
+El resto de variables representa un porcentaje de nulos muy bajo o sin nulos, por lo que no ha sido necesario aplicar mas cambios.
+
+
+**Conclusiones del análisis descriptivo**
+El dataset presenta características típicas de datos reales, como distribuciones asímetricas y presencia de autliers en la variable objetivo.
+El precio muestra una alta variabilidad y una distribución sesgada, lo que será necesario aplicar modelo robustos para su predicción.
+Las correlaciones débiles indican que el precio depende de múltiples factores, lo que refuerza la necesidad de utilizar modelos multivariantes.
+El tratamiento de valores nulos y outlieres permite mejorar la calidad del dataset y evitar que valores extremos o datos incompletos afecten negativamente al modelado.
 ---
 
 ## Ejercicio 2 — Inferencia con Scikit-Learn
 
 ---
-Añade aqui tu descripción y analisis:
-
+En este ejercicio se ha aplicado un modelo de regresión lineal utilizando la librería Scikit-Learn con el objetivo de predecir la variable 'price' apartir del resto de variables del dataset. En primer lugar, se ha realizado un preprocesamiento de los datos, S e han eliminadovariables identificativas y textuales que no aportan valor predictivo, como 'id', 'name', 'host_id', 'host_name' y 'last_review'. Además, los valores nulos de 'reviews_por_month' se han reemplazado por 0.
+Las variables categóricas ('neighbourhood', 'neighbourhood' y 'room_type') se han transformado mediante OneHotEncoder, mientras que las variables numéricas se han escalado utilizando StandardScaler. Este proceso permite que el modelo trate correctamente las variables y evita sesgo debido a diferentes escalas.
+Posteriormente, el dataset se ha dividido en conjunto de entrenamiento y test con una proporción 80/20 y 'random_state=42'. 
+A continuación, se ha entrenadi un modelo de regresión lineal mediante un Pipeline, integrandi el preprocesamiento y el modelo en un único flujo.
+Finalmente , se ha evaluado el modelo utilizando las métricas MAE, RMSE y R2, lo que permite analizar su capacidad predicativa y detectar sus limitaciones.  
 ---
 
 **Pregunta 2.1** — Indica los valores de MAE, RMSE y R² de la regresión lineal sobre el test set. ¿El modelo funciona bien? ¿Por qué?
 
-> _Escribe aquí tu respuesta_
+Los valores obtenidos para el modelo de regresión lineal sobre el conjunto de test son:
+- **MAE:** 133.83
+- **RMSE:** 596.98
+- **R2:** 0.0147
+
+El modelo no funciona bien, ya que presenta un rendimiento muy bajo.
+El valor del MAE indica que el error medio es elevado en relación con los precios del dataset, mientras que el RMSE, significamente mayor, muestra que existen errores grandes en algunas predicciones.
+Además, el valor de R2 es muy cercano a 0, lo que indica que el modelo apenas es capaz de explicar la variabilidad de la variable objetivo. En concreto, explica menos del 2% de la variación del precio.
+Esto sugiere que la relación entre variables predictoras y el precio no es lineal o que existen factores relevantes que no están siendo capturados por el modelo.
+En conclisión, la regresión lineal no es adecuada para este problema y seria necesario utilizar modelos más complejos para mejorar la capacidad predictiva.
+
 
 
 ---
